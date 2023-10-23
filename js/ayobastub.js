@@ -1,6 +1,6 @@
 class AyobaStub {
     constructor() {
-        this.isStubbed = true;
+        this.isStubbed = this.isStubbed;
         this.finish = this.finish;
         this.getMsisdn = this.getMsisdn;
         this.getCanSendMessage = this.getCanSendMessage;
@@ -26,11 +26,16 @@ class AyobaStub {
             this.triggerPresenceChanged();
             this.triggerMediaSentResponse();
             this.triggerNicknameChanged();
+            this.triggerLocationSentResponse();
         }, 5000);
     }
 
     finish() {
         return "This api call will close the ayoba microApp";
+    }
+
+    isStubbed() {
+        return true;
     }
 
     sendMessage() {
@@ -55,7 +60,7 @@ class AyobaStub {
     }
 
     getContacts() {
-        var jsonContacts = "27833241313";
+        var jsonContacts = "{msisdn:\"27833241313\"}";
         return jsonContacts
     }
 
@@ -65,7 +70,7 @@ class AyobaStub {
     }
 
     getCanSendMessage() {
-        var canSendMessage = "1";
+        var canSendMessage = true;
         return canSendMessage;
     }
 
@@ -96,11 +101,11 @@ class AyobaStub {
     }
 
     triggerMediaSentResponse() {
-        onMediaSentResponse(1);
+        onMediaSentResponse("true","https://i.ytimg.com/vi/d5PP4vIX7P8/maxresdefault.jpg");
     }
 
     triggerLocationSentResponse() {
-        onLocationSentResponse(1);
+        onLocationSentResponse("true");
     }
 
     triggerNicknameChanged() {

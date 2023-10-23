@@ -4,7 +4,8 @@
 var debug = false;
 var ready = false;
 var context;
-var appcontext
+var appcontext;
+var stubbed = false;
 // This is the magic line that pushes error event to the magic console
 window.onerror = function (msg, url, line, col, error) { console.log(msg, url, line, col, error); };
 // Let's wait for the page to load before doing anything
@@ -23,9 +24,11 @@ window.onload = function afterpagedLoad() {
     if (typeof Ayoba === 'undefined') {
         console.log("Looks like we're not inside ayoba, stubbinng the situation...");
         Ayoba = new AyobaStub();
+        stubbed = true;
     }
     else {
         console.log("Looks like we're in ayoba...");
+        stubbed = false;
     };
     console.log("List of methods available:");
     console.log(Object.getOwnPropertyNames(Ayoba));
@@ -85,30 +88,6 @@ window.onload = function afterpagedLoad() {
     };
 })(document.getElementById("logger"));
 
-
-/**
-* This function is called when the microapp is loaded and ready to be used
-*/
-function start() {
-    //Now that presence is updated and Ayoba is initialised, let's try calling a few functions
-    ready = true;
-    console.log("Let's try calling available methods..")
-    if (Object.getOwnPropertyNames(Ayoba).includes("getSelfJid")) {
-        console.log("Calling getSelfJid()...");
-        console.log("JID: " + getSelfJid());
-    };
-    if (Object.getOwnPropertyNames(Ayoba).includes("getMsisdn")) {
-        console.log("Calling getMsisdn()...");
-        console.log("MSISDN: " + getMsisdn());
-    };
-    if (Object.getOwnPropertyNames(Ayoba).includes("getCountry")) {
-        console.log("Country: " + getCountry());
-    };
-    if (Object.getOwnPropertyNames(Ayoba).includes("getLanguage")) {
-        console.log("Language: " + getLanguage());
-    };
-}
-
 /**
 * This function is called to close the microapp
 */
@@ -116,8 +95,21 @@ function finish() {
     console.log(Ayoba.finish());
 }
 
+function isStubbed() {
+    // on the real ayoba, this method does not exist so it will fail
+    try {
+        var isStubbed = Ayoba.isStubbed();
+        document.getElementById("isStubbedText").textContent = isStubbed;
+        stubbed = true;
+    } catch (e) {
+        document.getElementById("isStubbedText").textContent = false;
+        stubbed = false;
+    }
+}
+
 function sendMessage() {
     Ayoba.sendMessage(document.getElementById("inputText").value);
+    document.getElementById("sendMessageText").textContent = "Message sent";
 }
 
 function composeMessage() {
@@ -145,7 +137,7 @@ function sendLocation() {
 
 function getCountry() {
     var country = Ayoba.getCountry();
-    document.getElementById("countryText").textContent = country
+    document.getElementById("getCountryText").textContent = country
     return country
 }
 
@@ -157,19 +149,19 @@ function getMsisdn() {
 
 function getSelfJid() {
     var jid = Ayoba.getSelfJid();
-    document.getElementById("selfjidText").textContent = jid
+    document.getElementById("getSelfJidText").textContent = jid
     return jid
 }
 
 function getCanSendMessage() {
     var canSendMessage = Ayoba.getCanSendMessage();
-    document.getElementById("cansendText").textContent = canSendMessage
+    document.getElementById("getCanSendMessageText").textContent = canSendMessage
     return canSendMessage
 }
 
 function getLanguage() {
     var language = Ayoba.getLanguage();
-    document.getElementById("languageText").textContent = language
+    document.getElementById("getLanguageText").textContent = language
     return language
 }
 
@@ -201,7 +193,7 @@ function getSelfJidFromUrl() {
  * cases, will mean Ayoba cannot retrieve the GPS coordinates.
  */
 function onLocationChanged(lat, lon) {
-    document.getElementById("triggerLocationChangedText").textContent = lat + ", " + lon;
+    document.getElementById("triggerLocationChangedText").textContent = "lat: " + lat + ", lon: " + lon;
     console.log("Event: location changed, lat: " + lat + ", lon: " + lon);
 }
 
@@ -251,7 +243,7 @@ function onAvatarChanged(avatar) {
  * @param encodedUrl: Base64 encoded media file’s url
  */
 function onMediaSentResponse(responseCode, encodedUrl) {
-    document.getElementById("triggerMediaSentResponseText").value = responseCode + " - " + encodedUrl;
+    document.getElementById("triggerMediaSentResponseText").textContent = responseCode + " - " + encodedUrl;
     console.log("Event: media sent, response code: " + responseCode + " URL: " + encodedUrl);
 }
 
@@ -263,24 +255,25 @@ function onMediaSentResponse(responseCode, encodedUrl) {
  *  1: the location has been sent successfully
  */
 function onLocationSentResponse(responseCode) {
-    document.getElementById("triggerLocationSentResponseText").value = responseCode
+    document.getElementById("triggerLocationSentResponseText").textContent = responseCode
 }
 
 function getContactJid() {
     var contactJid = getURLParameter("contactjid")
-    document.getElementById("inputText").value = contactJid
+    document.getElementById("getContactJidText").textContent = contactJid
     return contactJid
 }
 
 function getContactName() {
     var contactName = getURLParameter("contactname")
-    document.getElementById("inputText").value = contactName
+    document.getElementById("getContactNameText").textContent = contactName
     return contactName
 }
 
 function getContacts() {
     var contactsJson = Ayoba.getContacts();
-    document.getElementById("inputText").value = contactsJson
+    console.log("Event: contacts retrieved: " + contactsJson);
+    document.getElementById("getContactsText").textContent = contactsJson;
     return contactsJson;
 }
 
