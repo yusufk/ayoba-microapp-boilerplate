@@ -7,8 +7,6 @@ var context;
 var appcontext
 // This is the magic line that pushes error event to the magic console
 window.onerror = function (msg, url, line, col, error) { console.log(msg, url, line, col, error); };
-console.log("Starting...");
-var Ayoba = getAyoba();
 // Let's wait for the page to load before doing anything
 window.onload = function afterpagedLoad() {
     context = getURLParameter("context");
@@ -18,19 +16,38 @@ window.onload = function afterpagedLoad() {
         document.getElementById("log-container").hidden = false;
         console.log("Hosted at: " + window.location.href);
     }
-    if (Ayoba === null) {
+    console.log("Starting...");
+    var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    console.log("User agent: " + userAgent)
+    //check if an Ayoba object exists and if not create a stub
+    if (typeof Ayoba === 'undefined') {
         console.log("Looks like we're not inside ayoba, stubbinng the situation...");
         Ayoba = new AyobaStub();
-        Ayoba.triggerNicknameChanged();
     }
     else {
         console.log("Looks like we're in ayoba...");
     };
     console.log("List of methods available:");
+    console.log(Object.getOwnPropertyNames(Ayoba));
     Object.getOwnPropertyNames(Ayoba).forEach((value) => {
         console.log(value);
+        // Populate a table with the available methods, an input field and a button to call them
+        var table = document.getElementById("methodsTable");
+        var row = table.insertRow(-1);
+        var cell1 = row.insertCell(0);
+        // if value starts with get or finish, assume no input field is required
+        if (value.startsWith("get") || value.startsWith("finish") || value.startsWith("trigger") || value.startsWith("is")) {
+            cell1.innerHTML = "<button onclick=\"" + value + "()\">" + value + "</button>";
+            var cell2 = row.insertCell(1);
+            cell2.innerHTML = "-----";
+        } else {
+            cell1.innerHTML = "<button onclick=\"" + value + "(" + document.getElementById("inputText_" + value + ")".value) + ")\">" + value + "</button>";
+            var cell2 = row.insertCell(1);
+            cell2.innerHTML = "<input type=\"text\" id=\"inputText_" + value + " value=\"\" />";
+        }
+        var cell3 = row.insertCell(2);
+        cell3.innerHTML = "<span type=\"text\" id=" + value + "Text></span>";
     })
-    console.log(Object.getOwnPropertyNames(Ayoba));
     const copyButton = document.getElementById("btn_copy");
     copyButton.addEventListener('click', () => {
         copyMessage("logger");
@@ -68,38 +85,11 @@ window.onload = function afterpagedLoad() {
     };
 })(document.getElementById("logger"));
 
-/**
- * Checks if the microapp is running inside ayoba and on which OS 
- * returns the OS name or null if not running inside ayoba
- */
-function getAyoba() {
-    var userAgent = navigator.userAgent || navigator.vendor || window.opera;
-
-    // Windows Phone must come first because its UA also contains "Android"
-    if (/windows phone/i.test(userAgent)) {
-        return null;
-    }
-
-    if (/android/i.test(userAgent)) {
-        try {
-            return Android;
-        } catch (error) {
-            return null;
-        }
-    }
-
-    // iOS detection from: http://stackoverflow.com/a/9039885/177710
-    if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-        return null; // todo 
-    }
-
-    return "unknown";
-}
 
 /**
 * This function is called when the microapp is loaded and ready to be used
 */
-function start(){
+function start() {
     //Now that presence is updated and Ayoba is initialised, let's try calling a few functions
     ready = true;
     console.log("Let's try calling available methods..")
@@ -161,7 +151,7 @@ function getCountry() {
 
 function getMsisdn() {
     var msisdn = Ayoba.getMsisdn();
-    document.getElementById("msisdnText").textContent = msisdn
+    document.getElementById("getMsisdnText").textContent = msisdn
     return msisdn
 }
 
@@ -211,7 +201,7 @@ function getSelfJidFromUrl() {
  * cases, will mean Ayoba cannot retrieve the GPS coordinates.
  */
 function onLocationChanged(lat, lon) {
-    document.getElementById("locationInputText").textContent = lat+", "+lon;
+    document.getElementById("triggerLocationChangedText").textContent = lat + ", " + lon;
     console.log("Event: location changed, lat: " + lat + ", lon: " + lon);
 }
 
@@ -219,10 +209,10 @@ function onLocationChanged(lat, lon) {
  * The Ayoba native interface calls this method every time
  * the user profile changes (nickname or avatar)
  */
-function onProfileChanged(nickname, avatarPath) {
-    document.getElementById("nicknameInputText").textContent = nickname
+function onProfileChanged(profileText, avatarPath) {
+    document.getElementById("triggerProfileChangedText").textContent = profileText
     document.getElementById("avatarImage").src = avatarPath
-    console.log("Event: profile changed, nickname: " + nickname + ", avatar path: " + avatarPath);
+    console.log("Event: profile changed, nickname: " + profileText + ", avatar path: " + avatarPath);
 }
 
 /*
@@ -230,10 +220,8 @@ function onProfileChanged(nickname, avatarPath) {
  * the user nickname changes (infact, always online)
  */
 function onNicknameChanged(nickname) {
-    document.getElementById("nicknameInputText").textContent = nickname
+    document.getElementById("triggerNicknameChangedText").textContent = nickname
     console.log("Event: nickname changed: " + nickname);
-    //Only call start the 1st time the app is loaded
-    if (!ready){ start();};
 }
 
 /*
@@ -241,7 +229,7 @@ function onNicknameChanged(nickname) {
  * the user presence changes (infact, always online)
  */
 function onPresenceChanged(presence) {
-    document.getElementById("presenceInputText").textContent = presence
+    document.getElementById("triggerPresenceChangedText").textContent = presence
     console.log("Event: presence changed: " + presence);
 }
 
@@ -263,7 +251,7 @@ function onAvatarChanged(avatar) {
  * @param encodedUrl: Base64 encoded media file’s url
  */
 function onMediaSentResponse(responseCode, encodedUrl) {
-    document.getElementById("inputText").value = responseCode+" - "+encodedUrl;
+    document.getElementById("triggerMediaSentResponseText").value = responseCode + " - " + encodedUrl;
     console.log("Event: media sent, response code: " + responseCode + " URL: " + encodedUrl);
 }
 
@@ -275,7 +263,7 @@ function onMediaSentResponse(responseCode, encodedUrl) {
  *  1: the location has been sent successfully
  */
 function onLocationSentResponse(responseCode) {
-    document.getElementById("inputText").value = responseCode
+    document.getElementById("triggerLocationSentResponseText").value = responseCode
 }
 
 function getContactJid() {
@@ -313,11 +301,26 @@ function onPictureRetrievedResponse(responseCode, picturePath) {
     document.getElementById("pictureRetrieved").src = picturePath
 }
 
+/* Select a contact from the contact list */
+function selectContact() {
+    // Open the device's contact list and allow the user to select a contact
+    // Once a contact is selected, update the selectedContact span with the contact's phone number
+    // You can use a plugin like cordova-plugin-contacts to access the device's contacts
+    navigator.contacts.pickContact(function (contact) {
+        document.getElementById("inputText_startConversation").innerHTML = contact.phoneNumbers[0].value;
+    }, function (err) {
+        console.log('Error: ' + err);
+    });
+}
+
+
 /*
  * Starts a conversation with a user using his JID
  */
 function startConversation() {
-    Ayoba.startConversation('07aaf1be5b25b7c8c6a89159bc849e1d37ca7d1c@dev.ayoba.me');
+    var msisdn = document.getElementById("selectedContact").innerHTML;
+    jid = sha1(msisdn) + "@dev.ayoba.me";
+    Ayoba.startConversation(jid);
 }
 
 function getFile() {
