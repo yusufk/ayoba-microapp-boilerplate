@@ -3,16 +3,46 @@
     h1 {
         font-size: 24px;
     }
+
     h2 {
         font-size: 18px;
     }
+
     #log-container {
         padding: 10px;
         margin: 10px;
     }
-    /* Add more styles for small screens as needed */
+
     table {
         width: 100%;
+        table-layout: fixed;
+        border-collapse: collapse;
+        /* Add this line */
+    }
+
+    /* Add this to limit the width of buttons */
+    /* Adjust the width of buttons */
+    button {
+        width: auto;
+        /* Allow the button to shrink to fit its content */
+        max-width: 100%;
+        /* Don't allow the button to stretch beyond its container */
+        overflow: hidden;
+        /* Hide any content that spills over the button's dimensions */
+        white-space: nowrap;
+        /* Prevent the button's content from wrapping to the next line */
+        text-overflow: ellipsis;
+        /* Indicate that text has been clipped if it's too long to fit */
+    }
+
+    /* Add this to limit the width of input boxes */
+    input[type="text"] {
+        width: 100%;
+        /* Take up full width of container */
+        max-width: 100%;
+        /* Don't stretch beyond container */
+        box-sizing: border-box;
+        /* Include padding and border in element's total width and height */
     }
 }
 
@@ -21,14 +51,23 @@
     h1 {
         font-size: 36px;
     }
+
     h2 {
         font-size: 24px;
     }
+
     #log-container {
         padding: 20px;
         margin: 20px;
     }
-    /* Add more styles for large screens as needed */
+}
+
+/* Add this to handle content in table cells */
+table td,
+table th {
+    word-wrap: break-word;
+    border: 1px solid #000;
+    /* Add this line */
 }
 
 #avatarImage {
@@ -36,16 +75,25 @@
     max-height: 50vh;
 }
 
-#log-container { 
-    background:black; 
+#log-container {
+    background: black;
     overflow-y: scroll;
     overflow-wrap: break-word;
-    height:25vh;
+    height: 25vh;
     display: flex;
     flex-direction: column-reverse;
 }
+
 .log-boolean,
-.log-undefined {color: magenta;}
+.log-undefined {
+    color: magenta;
+}
+
 .log-object,
-.log-string {color: green;}
-.log-number {color: cyan;}
+.log-string {
+    color: green;
+}
+
+.log-number {
+    color: cyan;
+}
