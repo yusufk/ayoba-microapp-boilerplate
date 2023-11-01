@@ -295,15 +295,18 @@ function onPictureRetrievedResponse(responseCode, picturePath) {
 }
 
 /* Select a contact from the contact list */
-function selectContact() {
-    // Open the device's contact list and allow the user to select a contact
-    // Once a contact is selected, update the selectedContact span with the contact's phone number
-    // You can use a plugin like cordova-plugin-contacts to access the device's contacts
-    navigator.contacts.pickContact(function (contact) {
+
+async function selectContact() {
+    const props = ['tel']; // Contact properties to get
+    const opts = {multiple: false};
+
+    try {
+        const contact = await navigator.contacts.select(props, opts);
+        console.log(contact);
         document.getElementById("inputText_startConversation").innerHTML = contact.phoneNumbers[0].value;
-    }, function (err) {
-        console.log('Error: ' + err);
-    });
+    } catch (e) {
+        console.log('Access to contacts was denied.');
+    }
 }
 
 
